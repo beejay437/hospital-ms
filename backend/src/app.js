@@ -20,9 +20,14 @@ const app = express();
 
 // Security & parsing
 app.use(helmet());
+const cors = require('cors');
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true,
+  origin: [
+    'http://localhost:3000',
+    'https://hospital-ms-zlkv.vercel.app' // 👈 your frontend URL
+  ],
+  credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
