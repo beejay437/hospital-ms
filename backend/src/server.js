@@ -3,23 +3,25 @@ const app = require('./app');
 const { testConnection } = require('./config/database');
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
 
 const start = async () => {
-  const dbOk = await testConnection();
-  if (!dbOk) {
-  console.error('⚠️ Could not connect to database — but server will still start');
-}
+  try {
+    const dbOk = await testConnection();
 
-  app.listen(PORT, () => {
-    console.log(`\n🏥 Hospital MS API running on http://localhost:${PORT}`);
-    console.log(`📖 Health check: http://localhost:${PORT}/health`);
-    console.log(`🌐 API base: http://localhost:${PORT}/api/v1\n`);
-  });
+    if (!dbOk) {
+      console.error('⚠️ Could not connect to database — server will still start');
+    }
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error('❌ Startup crash:', err);
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running (with errors) on port ${PORT}`);
+    });
+  }
 };
 
-start().catch((err) => {
-  console.error('Server startup error:', err);
-});
+start();
