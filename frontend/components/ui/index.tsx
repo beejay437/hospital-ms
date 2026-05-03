@@ -4,6 +4,7 @@ import { X, Loader2, SearchX, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn, statusColor } from '@/lib/utils';
 import React from 'react';
 
+
 // ─── Modal ────────────────────────────────────────────────────────────────────
 export function Modal({
   open, onClose, title, children, size = 'md',
@@ -67,39 +68,37 @@ export function EmptyState({ message = 'No results found', action }: { message?:
 }
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
-export function StatCard({
-  label, value, icon: Icon, color = 'blue', sub,
-}: {
+
+
+interface StatCardProps {
   label: string;
-  value: string | number;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  value: number | string;
+  icon: React.ElementType; // ✅ FIXED HERE
   color?: string;
   sub?: string;
-}) {
-  const colors: Record<string, string> = {
-    blue: 'bg-blue-50 text-blue-600',
-    green: 'bg-green-50 text-green-600',
-    orange: 'bg-orange-50 text-orange-600',
-    red: 'bg-red-50 text-red-600',
-    purple: 'bg-purple-50 text-purple-600',
-    indigo: 'bg-indigo-50 text-indigo-600',
-  };
+}
+
+export function StatCard({
+  label,
+  value,
+  icon: Icon,
+  color = 'blue',
+  sub,
+}: StatCardProps) {
   return (
-    <div className="card p-5">
-      <div className="flex items-start gap-4">
-        <div className={cn('p-3 rounded-xl', colors[color] || colors.blue)}>
-          <Icon size={22} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm text-gray-500 font-medium">{label}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-0.5">{value}</p>
-          {sub && <p className="text-xs text-gray-400 mt-1">{sub}</p>}
-        </div>
+    <div className="card p-4 flex items-center gap-3">
+      <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-${color}-100`}>
+        <Icon size={18} className={`text-${color}-600`} />
+      </div>
+
+      <div className="flex-1">
+        <p className="text-xs text-gray-500">{label}</p>
+        <p className="text-lg font-bold text-gray-900">{value}</p>
+        {sub && <p className="text-xs text-gray-400">{sub}</p>}
       </div>
     </div>
   );
 }
-
 // ─── Pagination ───────────────────────────────────────────────────────────────
 export function Pagination({
   page, totalPages, onChange,
