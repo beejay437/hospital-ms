@@ -7,9 +7,8 @@ const PORT = process.env.PORT || 5000;
 const start = async () => {
   const dbOk = await testConnection();
   if (!dbOk) {
-    console.error('Could not connect to database. Exiting.');
-    process.exit(1);
-  }
+  console.error('⚠️ Could not connect to database — but server will still start');
+}
 
   app.listen(PORT, () => {
     console.log(`\n🏥 Hospital MS API running on http://localhost:${PORT}`);
