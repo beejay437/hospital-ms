@@ -18,17 +18,17 @@ const dashboardRoutes = require('./routes/dashboard.routes');
 
 const app = express();
 
-// Security & parsing
+// ─── Security & Middleware ─────────────────────────────────────
 app.use(helmet());
-const cors = require('cors');
 
 app.use(cors({
   origin: [
     'http://localhost:3000',
-    'https://hospital-ms-zlkv.vercel.app' // 👈 your frontend URL
+    'https://hospital-ms-zlkv.vercel.app'
   ],
   credentials: true
 }));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -36,13 +36,14 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
 }
 
-// Health check
+// ─── Health Check ──────────────────────────────────────────────
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
-// API Routes
+// ─── API Routes ────────────────────────────────────────────────
 const apiV1 = '/api/v1';
+
 app.use(`${apiV1}/auth`, authRoutes);
 app.use(`${apiV1}/patients`, patientRoutes);
 app.use(`${apiV1}/staff`, staffRoutes);
@@ -53,7 +54,7 @@ app.use(`${apiV1}/billing`, billingRoutes);
 app.use(`${apiV1}/pharmacy`, pharmacyRoutes);
 app.use(`${apiV1}/dashboard`, dashboardRoutes);
 
-// Error handling
+// ─── Error Handling ────────────────────────────────────────────
 app.use(notFoundHandler);
 app.use(globalErrorHandler);
 
