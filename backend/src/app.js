@@ -24,7 +24,7 @@ app.use(helmet());
 app.use(cors({
   origin: [
     'http://localhost:3000',
-    'https://hospital-ms-zlkv.vercel.app'
+    'https://hospital-ms-zlkw.vercel.app'
   ],
   credentials: true
 }));
