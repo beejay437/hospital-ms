@@ -21,11 +21,14 @@ const app = express();
 // ─── Security & Middleware ─────────────────────────────────────
 app.use(helmet());
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://hospital-ms-zlkw.vercel.app'
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.options('*', cors({
+  origin: true,
   credentials: true
 }));
 
