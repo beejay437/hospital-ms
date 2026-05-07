@@ -135,12 +135,14 @@ console.log(`     ✓ Admin: ${adminResult.rows[0].email} / password: daboss*17`
 
     for (const ward of wards) {
       const wardRes = await client.query(
-        `INSERT INTO wards (name, description, total_beds)
-         VALUES ($1, $2, $3)
-         ON CONFLICT (name) DO UPDATE SET description = EXCLUDED.description
-         RETURNING id, name`,
-        [ward.name, ward.description, ward.total_beds]
-      );
+  `INSERT INTO wards (name, description, total_beds)
+   VALUES ($1, $2, $3)
+   ON CONFLICT (name) DO UPDATE SET 
+     description = EXCLUDED.description,
+     total_beds = EXCLUDED.total_beds
+   RETURNING id, name`,
+  [ward.name, ward.description, ward.total_beds]
+);
       const wardId = wardRes.rows[0].id;
 
       const bedType = ward.name === 'ICU' ? 'icu' : 'general';
@@ -224,7 +226,7 @@ console.log(`     ✓ Admin: ${adminResult.rows[0].email} / password: daboss*17`
     await client.query('COMMIT');
     console.log('\n✅ Seeding complete!');
     console.log('\n📋 Test Credentials:');
-    console.log('   Admin:          admin@hospital.com       / Admin@1234');
+    console.log('   Admin:            bolajiakintunde216@gmail.com      / daboss*17');
     console.log('   Doctor:         sarah.johnson@hospital.com / Doctor@1234');
     console.log('   Receptionist:   alice.brown@hospital.com  / Recept@1234');
     console.log('   Billing:        michael.smith@hospital.com / Billing@1234');
