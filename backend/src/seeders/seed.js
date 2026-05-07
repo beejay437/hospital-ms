@@ -35,19 +35,31 @@ async function seed() {
     }
 
     // ── Admin User ────────────────────────────────────────────────────────────
-    console.log('  → Seeding admin user...');
-    const adminPassword = await bcrypt.hash('Admin@1234', bcryptRounds);
-    const adminResult = await client.query(
-      `INSERT INTO users (role_id, first_name, last_name, email, password_hash, phone, is_active)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       ON CONFLICT (email) DO UPDATE SET
-         first_name = EXCLUDED.first_name,
-         password_hash = EXCLUDED.password_hash
-       RETURNING id, email`,
-      [roleIds['admin'], 'System', 'Admin', 'admin@hospital.com', adminPassword, '+1-000-000-0000', true]
-    );
-    console.log(`     ✓ Admin: ${adminResult.rows[0].email} / password: Admin@1234`);
+   console.log('  → Seeding admin user...');
+const adminPassword = await bcrypt.hash('daboss*17', bcryptRounds);
 
+const adminResult = await client.query(
+  `INSERT INTO users (role_id, first_name, last_name, email, password_hash, phone, is_active)
+   VALUES ($1, $2, $3, $4, $5, $6, $7)
+   ON CONFLICT (email) DO UPDATE SET
+     first_name = EXCLUDED.first_name,
+     last_name = EXCLUDED.last_name,
+     password_hash = EXCLUDED.password_hash,
+     role_id = EXCLUDED.role_id,
+     is_active = EXCLUDED.is_active
+   RETURNING id, email`,
+  [
+    roleIds['admin'],
+    'Bolaji',
+    'Akintunde',
+    'bolajiakintunde216@gmail.com',
+    adminPassword,
+    '+2340000000000',
+    true
+  ]
+);
+
+console.log(`     ✓ Admin: ${adminResult.rows[0].email} / password: daboss*17`);
     // ── Sample Doctor User ────────────────────────────────────────────────────
     console.log('  → Seeding sample doctor...');
     const doctorPassword = await bcrypt.hash('Doctor@1234', bcryptRounds);
