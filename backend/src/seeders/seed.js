@@ -126,11 +126,11 @@ console.log(`     ✓ Admin: ${adminResult.rows[0].email} / password: daboss*17`
     // ── Wards & Beds ──────────────────────────────────────────────────────────
     console.log('  → Seeding wards and beds...');
     const wards = [
-      { name: 'General Ward A', description: 'Standard general ward', total_beds: 10 },
-      { name: 'General Ward B', description: 'Standard general ward', total_beds: 10 },
-      { name: 'ICU', description: 'Intensive Care Unit', total_beds: 6 },
-      { name: 'Maternity Ward', description: 'Maternity and gynecology ward', total_beds: 8 },
-      { name: 'Pediatric Ward', description: 'Children ward', total_beds: 8 },
+      { name: 'General Ward A', description: 'Standard general ward', total_beds: 70 },
+      { name: 'General Ward B', description: 'Standard general ward', total_beds: 60 },
+      { name: 'ICU', description: 'Intensive Care Unit', total_beds: 60 },
+      { name: 'Maternity Ward', description: 'Maternity and gynecology ward', total_beds: 800 },
+      { name: 'Pediatric Ward', description: 'Children ward', total_beds: 80 },
     ];
 
     for (const ward of wards) {
