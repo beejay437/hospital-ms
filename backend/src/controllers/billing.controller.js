@@ -1,4 +1,4 @@
-const { query, getClient } = require('../config/database');
+const { query } = require('../config/database');
 const { generateInvoiceNumber } = require('../utils/generators');
 const { success, created, notFound, badRequest, paginate } = require('../utils/response');
 
