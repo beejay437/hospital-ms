@@ -71,7 +71,7 @@ const createMedicine = async (req, res, next) => {
       await query(
         `INSERT INTO inventory_transactions (medicine_id, transaction_type, quantity, unit_price, reference, notes, performed_by)
          VALUES ($1,'stock_in',$2,$3,'Initial stock','Opening stock entry',$4)`,
-        [result.rows[0].id, currentStock, unitPrice || 0, req.user.id]
+        [result.rows[0].id, currentStock, unitPrice || 0,req.user?.id || null
       );
     }
 
