@@ -1,4 +1,4 @@
-const { query, getClient } = require('../config/database');
+const { query } = require('../config/database');
 const { success, created, notFound, badRequest, paginate } = require('../utils/response');
 
 const getUserId = (req) => req.user?.id || null;
