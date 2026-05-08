@@ -95,7 +95,7 @@ const createInvoice = async (req, res, next) => {
       `INSERT INTO invoices (invoice_number, patient_id, appointment_id, admission_id, subtotal, discount, tax, total, balance, due_date, notes, created_by, status)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'unpaid') RETURNING *`,
       [invoiceNumber, patientId, appointmentId || null, admissionId || null,
-       subtotal, discount, tax, total, balance, dueDate || null, notes || null, req.user.id]
+       subtotal, discount, tax, total, balance, dueDate || null, notes || null,req.user?.id || null
     );
     const invoice = invRes.rows[0];
 
