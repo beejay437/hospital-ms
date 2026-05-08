@@ -85,11 +85,7 @@ const getInvoice = async (req, res, next) => {
 };
 
 const createInvoice = async (req, res, next) => {
-  const client = await getClient();
-
   try {
-    await client.query('BEGIN');
-
     const {
       patientId,
       appointmentId,
@@ -105,20 +101,20 @@ const createInvoice = async (req, res, next) => {
       return badRequest(res, 'Invoice must have at least one item');
     }
 
-    const patRes = await client.query(`SELECT id FROM patients WHERE id = $1`, [patientId]);
+    const patRes = await query(`SELECT id FROM patients WHERE id = $1`, [patientId]);
     if (!patRes.rows.length) return notFound(res, 'Patient not found');
 
     const invoiceNumber = await generateInvoiceNumber();
 
     const subtotal = items.reduce(
-      (sum, item) => sum + parseFloat(item.unitPrice) * parseFloat(item.quantity),
+      (sum, item) => sum + parseFloat(item.unitPrice || 0) * parseFloat(item.quantity || 0),
       0
     );
 
     const total = subtotal - parseFloat(discount || 0) + parseFloat(tax || 0);
     const balance = total;
 
-    const invRes = await client.query(
+    const invRes = await query(
       `INSERT INTO invoices (
         invoice_number, patient_id, appointment_id, admission_id,
         subtotal, discount, tax, total, balance, due_date, notes, created_by, status
@@ -144,56 +140,48 @@ const createInvoice = async (req, res, next) => {
     const invoice = invRes.rows[0];
 
     for (const item of items) {
-      const itemTotal = parseFloat(item.unitPrice) * parseFloat(item.quantity);
+      const itemTotal = parseFloat(item.unitPrice || 0) * parseFloat(item.quantity || 0);
 
-      await client.query(
+      await query(
         `INSERT INTO invoice_items (invoice_id, description, category, quantity, unit_price, total)
          VALUES ($1,$2,$3,$4,$5,$6)`,
         [
           invoice.id,
           item.description,
           item.category || null,
-          item.quantity,
-          item.unitPrice,
+          item.quantity || 1,
+          item.unitPrice || 0,
           itemTotal,
         ]
       );
     }
 
-    await client.query('COMMIT');
     return created(res, invoice, 'Invoice created');
   } catch (err) {
-    await client.query('ROLLBACK');
     next(err);
-  } finally {
-    client.release();
   }
 };
 
 const addInvoiceItem = async (req, res, next) => {
-  const client = await getClient();
-
   try {
-    await client.query('BEGIN');
-
     const { id } = req.params;
     const { description, category, quantity = 1, unitPrice } = req.body;
 
-    const invRes = await client.query(`SELECT * FROM invoices WHERE id = $1`, [id]);
+    const invRes = await query(`SELECT * FROM invoices WHERE id = $1`, [id]);
     if (!invRes.rows.length) return notFound(res, 'Invoice not found');
     if (invRes.rows[0].status === 'cancelled') {
       return badRequest(res, 'Cannot modify a cancelled invoice');
     }
 
-    const itemTotal = parseFloat(unitPrice) * parseFloat(quantity);
+    const itemTotal = parseFloat(unitPrice || 0) * parseFloat(quantity || 0);
 
-    await client.query(
+    await query(
       `INSERT INTO invoice_items (invoice_id, description, category, quantity, unit_price, total)
        VALUES ($1,$2,$3,$4,$5,$6)`,
-      [id, description, category || null, quantity, unitPrice, itemTotal]
+      [id, description, category || null, quantity || 1, unitPrice || 0, itemTotal]
     );
 
-    const totRes = await client.query(
+    const totRes = await query(
       `SELECT SUM(total) AS subtotal FROM invoice_items WHERE invoice_id = $1`,
       [id]
     );
@@ -203,31 +191,23 @@ const addInvoiceItem = async (req, res, next) => {
     const newTotal = subtotal - parseFloat(inv.discount || 0) + parseFloat(inv.tax || 0);
     const newBalance = newTotal - parseFloat(inv.amount_paid || 0);
 
-    await client.query(
+    await query(
       `UPDATE invoices SET subtotal=$1, total=$2, balance=$3, updated_at=NOW() WHERE id=$4`,
       [subtotal, newTotal, newBalance, id]
     );
 
-    await client.query('COMMIT');
     return success(res, null, 'Item added');
   } catch (err) {
-    await client.query('ROLLBACK');
     next(err);
-  } finally {
-    client.release();
   }
 };
 
 const recordPayment = async (req, res, next) => {
-  const client = await getClient();
-
   try {
-    await client.query('BEGIN');
-
     const { id } = req.params;
     const { amount, paymentMethod = 'cash', referenceNumber, notes } = req.body;
 
-    const invRes = await client.query(`SELECT * FROM invoices WHERE id = $1`, [id]);
+    const invRes = await query(`SELECT * FROM invoices WHERE id = $1`, [id]);
     if (!invRes.rows.length) return notFound(res, 'Invoice not found');
 
     const inv = invRes.rows[0];
@@ -235,15 +215,15 @@ const recordPayment = async (req, res, next) => {
     if (inv.status === 'cancelled') return badRequest(res, 'Cannot record payment for a cancelled invoice');
     if (inv.status === 'paid') return badRequest(res, 'Invoice is already fully paid');
 
-    const paymentAmount = parseFloat(amount);
+    const paymentAmount = parseFloat(amount || 0);
 
     if (paymentAmount <= 0) return badRequest(res, 'Payment amount must be positive');
 
-    if (paymentAmount > parseFloat(inv.balance)) {
+    if (paymentAmount > parseFloat(inv.balance || 0)) {
       return badRequest(res, `Payment exceeds outstanding balance of ${inv.balance}`);
     }
 
-    await client.query(
+    await query(
       `INSERT INTO payments (invoice_id, patient_id, amount, payment_method, reference_number, notes, received_by)
        VALUES ($1,$2,$3,$4,$5,$6,$7)`,
       [
@@ -261,19 +241,15 @@ const recordPayment = async (req, res, next) => {
     const newBalance = parseFloat(inv.total || 0) - newAmountPaid;
     const newStatus = newBalance <= 0 ? 'paid' : 'partial';
 
-    const updatedInv = await client.query(
+    const updatedInv = await query(
       `UPDATE invoices SET amount_paid=$1, balance=$2, status=$3, updated_at=NOW()
        WHERE id=$4 RETURNING *`,
       [newAmountPaid, newBalance, newStatus, id]
     );
 
-    await client.query('COMMIT');
     return success(res, updatedInv.rows[0], 'Payment recorded');
   } catch (err) {
-    await client.query('ROLLBACK');
     next(err);
-  } finally {
-    client.release();
   }
 };
 
