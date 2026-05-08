@@ -1,16 +1,22 @@
-const pool = require('../config/database');
+const { query } = require('../config/database');
 
-/**
- * Generates a safe unique patient number.
- * Example: PAT-000001, PAT-000002, PAT-000003
- */
 const generatePatientNumber = async () => {
   try {
-    const result = await pool.query(`
-      SELECT nextval('patient_number_seq') AS number
+    const result = await query(`
+      SELECT patient_number
+      FROM patients
+      WHERE patient_number LIKE 'PAT-%'
+      ORDER BY id DESC
+      LIMIT 1
     `);
 
-    const nextNumber = result.rows[0].number;
+    let nextNumber = 1;
+
+    if (result.rows.length) {
+      const last = result.rows[0].patient_number; // PAT-000003
+      const lastNum = parseInt(last.replace('PAT-', ''), 10);
+      nextNumber = lastNum + 1;
+    }
 
     return `PAT-${String(nextNumber).padStart(6, '0')}`;
   } catch (error) {
