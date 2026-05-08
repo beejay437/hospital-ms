@@ -1,22 +1,15 @@
-const { query } = require('../config/database');
+const pool = require('../config/database');
 
+/**
+ * Generate Patient Number
+ */
 const generatePatientNumber = async () => {
   try {
-    const result = await query(`
-      SELECT patient_number
-      FROM patients
-      WHERE patient_number LIKE 'PAT-%'
-      ORDER BY id DESC
-      LIMIT 1
+    const result = await pool.query(`
+      SELECT nextval('patient_number_seq') AS number
     `);
 
-    let nextNumber = 1;
-
-    if (result.rows.length) {
-      const last = result.rows[0].patient_number; // PAT-000003
-      const lastNum = parseInt(last.replace('PAT-', ''), 10);
-      nextNumber = lastNum + 1;
-    }
+    const nextNumber = result.rows[0].number;
 
     return `PAT-${String(nextNumber).padStart(6, '0')}`;
   } catch (error) {
@@ -25,6 +18,25 @@ const generatePatientNumber = async () => {
   }
 };
 
+/**
+ * Generate Invoice Number
+ */
+const generateInvoiceNumber = async () => {
+  try {
+    const result = await pool.query(`
+      SELECT nextval('invoice_number_seq') AS number
+    `);
+
+    const nextNumber = result.rows[0].number;
+
+    return `INV-${String(nextNumber).padStart(6, '0')}`;
+  } catch (error) {
+    console.error('Error generating invoice number:', error);
+    throw new Error('Failed to generate invoice number');
+  }
+};
+
 module.exports = {
   generatePatientNumber,
+  generateInvoiceNumber,
 };
