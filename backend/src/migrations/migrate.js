@@ -2,6 +2,8 @@ require('dotenv').config({ path: require('path').join(__dirname, '../../.env') }
 const { pool } = require('../config/database');
 
 const migrations = [
+    `CREATE SEQUENCE IF NOT EXISTS patient_number_seq START 5`,
+  `CREATE SEQUENCE IF NOT EXISTS invoice_number_seq START 1`,
   // ─── Roles ──────────────────────────────────────────────────────────────────
   `CREATE TABLE IF NOT EXISTS roles (
     id SERIAL PRIMARY KEY,
