@@ -76,12 +76,48 @@ const createStaff = async (req, res, next) => {
 
     const hash = await bcrypt.hash(password, bcryptRounds);
 
-    const userRes = await query(
-      `INSERT INTO users (role_id, first_name, last_name, email, password_hash, phone)
-       VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
-      [roleId, firstName, lastName, email.toLowerCase(), hash, phone || null]
-    );
-    const user = userRes.rows[0];
+   let passwordHash = null;
+
+if (password && password.trim() !== '') {
+  passwordHash = await bcrypt.hash(password, bcryptRounds);
+}
+
+let roleId = null;
+
+if (roleName) {
+  const roleRes = await query(
+    `SELECT id FROM roles WHERE name = $1`,
+    [roleName]
+  );
+
+  if (roleRes.rows.length) {
+    roleId = roleRes.rows[0].id;
+  }
+}
+
+const userRes = await query(
+  `UPDATE users SET
+    first_name = COALESCE($1, first_name),
+    last_name = COALESCE($2, last_name),
+    email = COALESCE($3, email),
+    phone = COALESCE($4, phone),
+    role_id = COALESCE($5, role_id),
+    password_hash = COALESCE($6, password_hash),
+    is_active = COALESCE($7, is_active),
+    updated_at = NOW()
+   WHERE id = $8
+   RETURNING *`,
+  [
+    firstName,
+    lastName,
+    email,
+    phone,
+    roleId,
+    passwordHash,
+    isActive !== undefined ? isActive : null,
+    id,
+  ]
+);    const user = userRes.rows[0];
 
     let doctor = null;
     if (roleName === 'doctor') {
@@ -114,7 +150,13 @@ const updateStaff = async (req, res, next) => {
   try {
     const { id } = req.params;
     const {
-      firstName, lastName, phone, isActive,
+  firstName,
+  lastName,
+  email,
+  password,
+  roleName,
+  phone,
+  isActive,
       specialty, licenseNumber, qualification, yearsExperience,
       consultationFee, availableDays, availableFrom, availableTo,
     } = req.body;
