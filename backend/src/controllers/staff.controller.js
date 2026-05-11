@@ -159,7 +159,7 @@ const updateStaff = async (req, res, next) => {
         is_active = COALESCE($4, is_active),
         updated_at = NOW()
        WHERE id = $5 RETURNING *`,
-      [firstName, lastName, phone, isActive !== undefined ? isActive : null, id]
+      [firstName, lastName, phone, id]
     );
 
     // Update doctor record if provided
