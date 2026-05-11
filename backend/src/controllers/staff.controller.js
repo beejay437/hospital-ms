@@ -192,19 +192,15 @@ const deleteStaff = async (req, res, next) => {
     const existing = await query(`SELECT id FROM users WHERE id = $1`, [id]);
     if (!existing.rows.length) return notFound(res, 'Staff not found');
 
-    await query(
-      `UPDATE users
-       SET is_active = false, updated_at = NOW()
-       WHERE id = $1`,
-      [id]
-    );
+    await query(`DELETE FROM doctors WHERE user_id = $1`, [id]);
 
-    return success(res, null, 'Staff deactivated successfully');
+    await query(`DELETE FROM users WHERE id = $1`, [id]);
+
+    return success(res, null, 'Staff deleted permanently');
   } catch (err) {
     next(err);
   }
-};
-module.exports = {
+};module.exports = {
   listStaff,
   getStaff,
   createStaff,
