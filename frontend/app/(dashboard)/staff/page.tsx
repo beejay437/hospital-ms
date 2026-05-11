@@ -500,7 +500,26 @@ const handleEdit = async (e: React.FormEvent) => {
         <label className="label">Phone</label>
         <input className="input" value={form.phone} onChange={F('phone')} />
       </div>
+<div>
+  <label className="label">Email</label>
+  <input
+    type="email"
+    className="input"
+    value={form.email}
+    onChange={F('email')}
+  />
+</div>
 
+<div>
+  <label className="label">New Password</label>
+  <input
+    type="password"
+    className="input"
+    value={form.password}
+    onChange={F('password')}
+    placeholder="Leave blank to keep current password"
+  />
+</div>
       <div>
         <label className="label">Role</label>
         <select className="input" value={form.roleName} onChange={F('roleName')}>
