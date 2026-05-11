@@ -81,20 +81,7 @@ const createStaff = async (req, res, next) => {
 if (password && password.trim() !== '') {
   passwordHash = await bcrypt.hash(password, bcryptRounds);
 }
-
-let roleId = null;
-
-if (roleName) {
-  const roleRes = await query(
-    `SELECT id FROM roles WHERE name = $1`,
-    [roleName]
-  );
-
-  if (roleRes.rows.length) {
-    roleId = roleRes.rows[0].id;
-  }
-}
-
+    
 const userRes = await query(
   `UPDATE users SET
     first_name = COALESCE($1, first_name),
