@@ -11,10 +11,9 @@ const {
   deleteStaff,
 } = require('../controllers/staff.controller');
 
-const { authenticate } = require('../middleware/auth');
-const { authorize } = require('../middleware/authorize');
+const { authenticate, authorize } = require('../middleware/auth');
 
-// IMPORTANT: these special routes must come BEFORE /:id
+// IMPORTANT: special routes must come BEFORE /:id
 router.get('/roles', authenticate, authorize('admin'), getRoles);
 router.get('/doctors', authenticate, listDoctors);
 
