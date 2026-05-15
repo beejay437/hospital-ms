@@ -63,7 +63,6 @@ const getStaff = async (req, res, next) => {
     );
 
     if (!result.rows.length) return notFound(res, 'Staff not found');
-
     return success(res, result.rows[0]);
   } catch (err) {
     next(err);
@@ -89,6 +88,8 @@ const createStaff = async (req, res, next) => {
       availableTo,
     } = req.body;
 
+    if (!password) return badRequest(res, 'Password is required');
+
     const roleRes = await query(`SELECT id FROM roles WHERE name = $1`, [roleName]);
     if (!roleRes.rows.length) return badRequest(res, `Role '${roleName}' not found`);
 
@@ -103,12 +104,9 @@ const createStaff = async (req, res, next) => {
     );
 
     const user = userRes.rows[0];
-
     let doctor = null;
 
     if (roleName === 'doctor') {
-      if (!specialty) return badRequest(res, 'Specialty required for doctors');
-
       const docRes = await query(
         `INSERT INTO doctors (
           user_id, specialty, license_number, qualification, years_experience,
@@ -118,7 +116,7 @@ const createStaff = async (req, res, next) => {
          RETURNING *`,
         [
           user.id,
-          specialty,
+          specialty || 'General Medicine',
           licenseNumber || null,
           qualification || null,
           yearsExperience || 0,
@@ -133,7 +131,6 @@ const createStaff = async (req, res, next) => {
     }
 
     delete user.password_hash;
-
     return created(res, { user, doctor }, 'Staff created');
   } catch (err) {
     if (err.code === '23505') {
@@ -298,6 +295,7 @@ const deleteStaff = async (req, res, next) => {
     next(err);
   }
 };
+
 module.exports = {
   listStaff,
   getStaff,
