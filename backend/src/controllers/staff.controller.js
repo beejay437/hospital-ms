@@ -8,7 +8,7 @@ const listStaff = async (req, res, next) => {
     const { role, search = '', page = 1, limit = 20 } = req.query;
     const offset = (page - 1) * limit;
     const params = [];
-    let where = 'WHERE u.is_active = true';
+    let where = 'WHERE 1=1';
 
     if (role) {
       params.push(role);
