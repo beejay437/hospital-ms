@@ -191,25 +191,30 @@ const deletePatient = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // Check if patient exists
-    const existing = await query(
-      `SELECT id FROM patients WHERE id = $1`,
-      [id]
-    );
+    const existing = await query(`SELECT id FROM patients WHERE id = $1`, [id]);
+    if (!existing.rows.length) return notFound(res, 'Patient not found');
 
-    if (!existing.rows.length) {
-      return notFound(res, 'Patient not found');
+    await query(`DELETE FROM vital_signs WHERE patient_id = $1`, [id]);
+    await query(`DELETE FROM prescriptions WHERE patient_id = $1`, [id]);
+    await query(`DELETE FROM medical_records WHERE patient_id = $1`, [id]);
+    await query(`DELETE FROM appointments WHERE patient_id = $1`, [id]);
+    await query(`DELETE FROM payments WHERE patient_id = $1`, [id]);
+
+    const invoices = await query(`SELECT id FROM invoices WHERE patient_id = $1`, [id]);
+
+    for (const inv of invoices.rows) {
+      await query(`DELETE FROM invoice_items WHERE invoice_id = $1`, [inv.id]);
     }
 
-    // Soft delete (DO NOT remove from DB)
+    await query(`DELETE FROM invoices WHERE patient_id = $1`, [id]);
+    await query(`DELETE FROM admissions WHERE patient_id = $1`, [id]);
     await query(`DELETE FROM patients WHERE id = $1`, [id]);
 
-    return success(res, null, 'Patient removed successfully');
+    return success(res, null, 'Patient deleted permanently');
   } catch (err) {
     next(err);
   }
 };
-
 module.exports = {
   listPatients,
   getPatient,
