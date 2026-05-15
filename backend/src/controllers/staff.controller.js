@@ -288,7 +288,7 @@ const deleteStaff = async (req, res, next) => {
     if (!existing.rows.length) return notFound(res, 'Staff not found');
 
     await query(`DELETE FROM doctors WHERE user_id = $1`, [id]);
-    await query(`DELETE FROM inventory_transactions WHERE performed_by = $1`, [id]);
+    await query(`UPDATE inventory_transactions SET performed_by = NULL WHERE performed_by = $1`, [id]);
     await query(`UPDATE invoices SET created_by = NULL WHERE created_by = $1`, [id]);
     await query(`UPDATE payments SET received_by = NULL WHERE received_by = $1`, [id]);
     await query(`DELETE FROM users WHERE id = $1`, [id]);
