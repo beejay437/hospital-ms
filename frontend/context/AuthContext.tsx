@@ -25,27 +25,31 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+const normalizeRole = (role?: string) => {
+  return (role || '').toLowerCase().replace(/\s+/g, '_');
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const getDefaultRoute = useCallback((role?: string) => {
-    switch ((role || '').toLowerCase()) {
+    const cleanRole = normalizeRole(role);
+
+    switch (cleanRole) {
       case 'admin':
-        return '/staff';
-      case 'receptionist':
-        return '/patients';
+        return '/dashboard';
       case 'doctor':
         return '/appointments';
+      case 'receptionist':
+        return '/patients';
       case 'nurse':
         return '/admissions';
       case 'pharmacist':
         return '/pharmacy';
-     case 'billing_officer':
-case 'billing officer':
-case 'billing':
-  return '/billing';
+      case 'billing_officer':
+        return '/billing';
       default:
         return '/dashboard';
     }
@@ -89,10 +93,10 @@ case 'billing':
     return newUser;
   };
 
- const isRole = (...roles: string[]) => {
-  const currentRole = (user?.role || '').toLowerCase();
-  return roles.map(r => r.toLowerCase()).includes(currentRole);
-};
+  const isRole = (...roles: string[]) => {
+    const currentRole = normalizeRole(user?.role);
+    return roles.map(normalizeRole).includes(currentRole);
+  };
 
   return (
     <AuthContext.Provider
