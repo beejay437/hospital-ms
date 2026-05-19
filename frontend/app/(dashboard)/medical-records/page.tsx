@@ -60,7 +60,9 @@ export default function MedicalRecordsPage() {
 
   const [submitting, setSubmitting] = useState(false);
 
-  const canCreate = isRole('admin', 'doctor');
+  // Professional hospital rule:
+  // Doctor creates/edits records. Nurse/Admin can record vitals.
+  const canCreate = isRole('doctor');
   const canRecordVitals = isRole('admin', 'doctor', 'nurse');
 
   useEffect(() => {
@@ -114,9 +116,10 @@ export default function MedicalRecordsPage() {
     resetForm(p.id);
     fetchRecords(p.id);
 
+    // Load all appointments for this patient, not only confirmed ones
     api
       .get('/appointments', {
-        params: { patientId: p.id, status: 'confirmed', limit: 10 },
+        params: { patientId: p.id, limit: 10 },
       })
       .then((r) => setAppointments(r.data.data))
       .catch(() => {});
@@ -416,7 +419,7 @@ export default function MedicalRecordsPage() {
                 <option value="">None</option>
                 {appointments.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {formatDate(a.appointment_date)} — {a.appointment_time?.substring(0, 5)}
+                    {formatDate(a.appointment_date)} — {a.appointment_time?.substring(0, 5)} — {a.status}
                   </option>
                 ))}
               </select>
@@ -556,9 +559,7 @@ export default function MedicalRecordsPage() {
             <div className="flex gap-2">
               {canCreate && (
                 <button
-                  onClick={() => {
-                    setShowAddPrescription(viewRecord);
-                  }}
+                  onClick={() => setShowAddPrescription(viewRecord)}
                   className="btn-secondary flex-1 text-sm"
                 >
                   <Plus size={14} /> Add Prescription
