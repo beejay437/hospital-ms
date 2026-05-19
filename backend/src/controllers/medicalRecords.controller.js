@@ -9,10 +9,23 @@ const createRecord = async (req, res, next) => {
     } = req.body;
 
     // Get doctor_id from logged-in user
-    const docRes = await query(`SELECT id FROM doctors WHERE user_id = $1`, [req.user.id]);
-    if (!docRes.rows.length) return badRequest(res, 'Only doctors can create medical records');
-    const doctorId = docRes.rows[0].id;
+   let doctorId = null;
 
+const docRes = await query(`SELECT id FROM doctors WHERE user_id = $1`, [req.user.id]);
+
+if (docRes.rows.length) {
+  doctorId = docRes.rows[0].id;
+} else if (req.user.role === 'admin') {
+  const anyDoctor = await query(`SELECT id FROM doctors ORDER BY created_at ASC LIMIT 1`);
+
+  if (!anyDoctor.rows.length) {
+    return badRequest(res, 'Please create at least one doctor before creating medical records as admin');
+  }
+
+  doctorId = anyDoctor.rows[0].id;
+} else {
+  return badRequest(res, 'Only doctors can create medical records');
+}
     const result = await query(
       `INSERT INTO medical_records (patient_id, appointment_id, doctor_id, visit_date, chief_complaint, diagnosis, treatment_plan, consultation_notes, follow_up_date)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
